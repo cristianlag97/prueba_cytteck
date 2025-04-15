@@ -1,9 +1,9 @@
 import 'package:prueba_cyttek/domain/datasource/note_datasource.dart';
 import 'package:prueba_cyttek/domain/entities/note.dart';
 import 'package:prueba_cyttek/infrastructure/models/notes.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../core/core.dart';
+import '../../core/helpers/get_database.dart';
 
 class NoteDatasourceImpl extends NoteDatasource {
   @override
@@ -15,7 +15,7 @@ class NoteDatasourceImpl extends NoteDatasource {
       );
     }
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       await db.insert(DatabaseService.instance.notesTableName, {
         DatabaseService.instance.notesTitleColumnName: title,
         DatabaseService.instance.notesDescriptionColumnName: description,
@@ -35,7 +35,7 @@ class NoteDatasourceImpl extends NoteDatasource {
   @override
   Future<void> deleteNote(int id) async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final deletedCount = await db.delete(
         DatabaseService.instance.notesTableName,
         where: '${DatabaseService.instance.notesIdColumnName} = ?',
@@ -58,7 +58,7 @@ class NoteDatasourceImpl extends NoteDatasource {
   @override
   Future<Note> getNoteById(int id) async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final data = await db.query(
         DatabaseService.instance.notesTableName,
         where: '${DatabaseService.instance.notesIdColumnName} = ?',
@@ -83,7 +83,7 @@ class NoteDatasourceImpl extends NoteDatasource {
   @override
   Future<List<Note>> getNotes() async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final data = await db.query(DatabaseService.instance.notesTableName);
       return data.map(_mapToNote).toList();
     } catch (e) {
@@ -103,7 +103,7 @@ class NoteDatasourceImpl extends NoteDatasource {
       );
     }
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final updatedCount = await db.update(
         DatabaseService.instance.notesTableName,
         {
@@ -130,7 +130,7 @@ class NoteDatasourceImpl extends NoteDatasource {
   @override
   Future<void> updateStatusNote(int id, int status) async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final updatedCount = await db.update(
         DatabaseService.instance.notesTableName,
         {DatabaseService.instance.noteStatusColumnName: status},
@@ -147,24 +147,6 @@ class NoteDatasourceImpl extends NoteDatasource {
       throw CustomError(
         GeneralError.unknownError,
         'Error al cambiar el estado de la nota: $e',
-      );
-    }
-  }
-
-  Future<Database> _getDatabase() async {
-    try {
-      final db = await DatabaseService.instance.database;
-      if (!db.isOpen) {
-        throw CustomError(
-          GeneralError.databaseError,
-          'La base de datos no está inicializada correctamente.',
-        );
-      }
-      return db;
-    } catch (e) {
-      throw CustomError(
-        GeneralError.databaseError,
-        'No se pudo conectar a la base de datos: $e',
       );
     }
   }

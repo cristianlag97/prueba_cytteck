@@ -1,9 +1,9 @@
 import 'package:prueba_cyttek/domain/datasource/favotire_datasource.dart';
 import 'package:prueba_cyttek/domain/entities/favorite.dart';
 import 'package:prueba_cyttek/infrastructure/models/favorites.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../core/core.dart';
+import '../../core/helpers/get_database.dart';
 
 class FavoriteDatasourceImpl extends FavoriteDatasource {
   @override
@@ -15,7 +15,7 @@ class FavoriteDatasourceImpl extends FavoriteDatasource {
       );
     }
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       await db.insert(DatabaseService.instance.favoriteTableName, {
         DatabaseService.instance.favoriteIdColumnName: noteId,
         DatabaseService.instance.favoriteTitleColumnName: title,
@@ -34,7 +34,7 @@ class FavoriteDatasourceImpl extends FavoriteDatasource {
   @override
   Future<void> deleteFavorite(int id) async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final deletedCount = await db.delete(
         DatabaseService.instance.favoriteTableName,
         where: '${DatabaseService.instance.favoriteIdColumnName} = ?',
@@ -57,7 +57,7 @@ class FavoriteDatasourceImpl extends FavoriteDatasource {
   @override
   Future<Favorite> getFavoriteById(int id) async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
 
       final data = await db.query(
         DatabaseService.instance.favoriteTableName,
@@ -84,31 +84,13 @@ class FavoriteDatasourceImpl extends FavoriteDatasource {
   @override
   Future<List<Favorite>> getFavorites() async {
     try {
-      final db = await _getDatabase();
+      final db = await getDatabase();
       final data = await db.query(DatabaseService.instance.favoriteTableName);
       return data.map((e) => _mapToFavorite(e)).toList();
     } catch (e) {
       throw CustomError(
         GeneralError.unknownError,
         'Error al obtener las notas: $e',
-      );
-    }
-  }
-
-  Future<Database> _getDatabase() async {
-    try {
-      final db = await DatabaseService.instance.database;
-      if (!db.isOpen) {
-        throw CustomError(
-          GeneralError.databaseError,
-          'La base de datos no está inicializada correctamente.',
-        );
-      }
-      return db;
-    } catch (e) {
-      throw CustomError(
-        GeneralError.databaseError,
-        'No se pudo conectar a la base de datos: $e',
       );
     }
   }
